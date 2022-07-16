@@ -22,6 +22,9 @@ namespace KaimiraGames.GameJam
         public Dictionary<GridPoint, Tile> GridContents;
         public TextMeshProUGUI RollsLeftText;
 
+        private int StartingCats = 3;
+        private int StartingRolls = 12;
+        private int _currentInventory = 0;
 
         private void Awake()
         {
@@ -48,28 +51,41 @@ namespace KaimiraGames.GameJam
                 Destroy(GridContents[key].gameObject);
             }
             GridContents.Clear();
-
-
-            for (int x = 0; x < 5; x++)
-            {
-                for (int y = 0; y < 5; y++)
-                {
-                    GridPoint gp = new GridPoint(x, y);
-                }
-            }
-
-            RollsLeft = 15;
+            _currentInventory = 0;
+            RollsLeft = StartingRolls;
             UpdateRollText();
 
+            // Goal
             _cheesePoint = new GridPoint(4, 4);
             _cheeseTile = Instantiate(TilePrefab, Grid.gameObject.transform);
             _cheeseTile.InitializeOnGrid(TileType.Cheese, _cheesePoint, Grid.gameObject);
             GridContents[_cheesePoint] = _cheeseTile;
 
+            // Starting Cross
             GridPoint gp3 = new GridPoint(2, 0);
             Tile tile2 = Instantiate(TilePrefab, Grid.gameObject.transform);
             tile2.InitializeOnGrid(TileType.Cross, gp3, Grid.gameObject);
             GridContents[gp3] = tile2;
+
+            //cats!
+            for (int i = 0; i < StartingCats; i++)
+            {
+                GridPoint catpoint = new GridPoint(NumberUtils.Next(5), NumberUtils.Next(5));
+                if (GetTile(catpoint) != null) // try again
+                {
+                    i--;
+                    continue;
+                }
+                Tile catTile = Instantiate(TilePrefab, Grid.gameObject.transform);
+                catTile.InitializeOnGrid(TileType.Cat, catpoint, Grid.gameObject);
+                GridContents[catpoint] = catTile;
+            }
+
+            //freebie in inventory
+            TileType type = GetRandomInventoryTile();
+            Inventory.CreateTile(type);
+            _currentInventory++;
+
         }
 
         private GridPoint _cheesePoint;
@@ -98,12 +114,22 @@ namespace KaimiraGames.GameJam
             return true;
         }
 
+        /// <summary>
+        /// Rolls. Destroys a random inventory if they're full.
+        /// </summary>
         public void OnRollClicked()
         {
             RollsLeft--;
+            if (_currentInventory == 4)
+            {
+                _currentInventory--;
+                Inventory.DestroyRandomTile();
+            }
+            _currentInventory++;
             TileType newTileType = GetRandomRollTile();
             i($"Rolled a {newTileType}.");
             Inventory.CreateTile(newTileType);
+            UpdateRollText();
         }
 
         private void UpdateRollText()
@@ -114,6 +140,7 @@ namespace KaimiraGames.GameJam
         public void DropTile(Tile tile, GridPoint gp)
         {
             GridContents[gp] = tile;
+            _currentInventory--;
             CheckForWin();
         }
 
@@ -123,56 +150,75 @@ namespace KaimiraGames.GameJam
             int result = NumberUtils.Next(6);
             return result switch
             {
-                1 => TileType.LeftTurn,
-                2 => TileType.RightTurn,
-                3 => TileType.Straight,
-                4 => TileType.Cross,
-                5 => TileType.Tee,
+                0 => TileType.LeftTurn,
+                1 => TileType.RightTurn,
+                2 => TileType.Straight,
+                3 => TileType.Cross,
+                4 => TileType.Tee,
                 _ => TileType.Star,
             };
         }
+
+        public TileType GetRandomInventoryTile()
+        {
+            int result = NumberUtils.Next(5);
+            return result switch
+            {
+                0 => TileType.LeftTurn,
+                1 => TileType.RightTurn,
+                2 => TileType.Straight,
+                3 => TileType.Cross,
+                _ => TileType.Tee,
+            };
+        }
+
+        public void OnRestartClicked()
+        {
+            StartNewGame();
+        }
+
 
         private bool IsConnected(GridPoint gp, Tile tile)
         {
             bool foundOneConnector = false;
             List<GridPoint> connectingExits = Tile.GetExits(tile.TileType, tile.Orientation, gp);
-            v($"Checking {gp} with type:{tile.TileType} and orientation:{tile.Orientation} for valid connections at: {connectingExits.GetString()}");
+            //v($"Checking {gp} with type:{tile.TileType} and orientation:{tile.Orientation} for valid connections at: {connectingExits.GetString()}");
             foreach (GridPoint potentialTargetGP in connectingExits)
             {
                 if (IsLegalGridPoint(potentialTargetGP))
                 {
-                    v($"{potentialTargetGP} is a legal GP, checking...");
+                    //v($"{potentialTargetGP} is a legal GP, checking...");
                     Tile targetConnector = GetTile(potentialTargetGP);
                     if (targetConnector != null)
                     {
-                        v("There's something here.");
+                        //v("There's something here.");
                         List<GridPoint> targetsExits = Tile.GetExits(targetConnector.TileType, targetConnector.Orientation, potentialTargetGP);
                         v($"Checking {potentialTargetGP} with type:{targetConnector.TileType} and orientation:{targetConnector.Orientation} for valid connections at: {targetsExits.GetString()}");
                         if (targetsExits.Contains(gp))
                         {
-                            i("Found a valid connector!");
+                            //i("Found a valid connector!");
                             foundOneConnector = true;
                             break;
                         }
                         else
                         {
-                            v($"Our drop point isn't connected. Skipping.");
+                            //v($"Our drop point isn't connected. Skipping.");
                         }
                     }
                     else
                     {
-                        v($"Nothing's there. Skipping.");
+                        //v($"Nothing's there. Skipping.");
                     }
                 }
                 else
                 {
-                    v($"{potentialTargetGP} isn't a legal GP, skipping.");
+                    //v($"{potentialTargetGP} isn't a legal GP, skipping.");
                 }
             }
 
             if (!foundOneConnector)
             {
-                e("Couldn't find a connecting tile.");
+                //e("Couldn't find a connecting tile.");
                 return false;
             }
 

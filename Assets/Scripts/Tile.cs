@@ -32,7 +32,7 @@ namespace KaimiraGames.GameJam
         private GameObject _inventoryContainer;
         public GridPoint GridPoint = GridPoint.Empty;
         private GameObject _gridBoard;
-        private bool IsInventoryTile;
+        public bool IsInventoryTile;
 
         public Orientation Orientation = Orientation.Up;
 
@@ -108,31 +108,6 @@ namespace KaimiraGames.GameJam
             v("Tile rotated.");
             Rotate();
         }
-
-        /// <summary>
-        ///  Returns true/false if this tile/rotation connects to a given GP. Can handle bad GPs.
-        /// </summary>
-        /// <param name="gp"></param>
-        /// <returns></returns>
-        public bool DoesConnectToXXXXXXX(GridPoint potentialSpot, GridPoint targetSpot)
-        {
-            v($"Checking if a {TileType} tile with rotation {Orientation} at {potentialSpot} would connect to {targetSpot}");
-
-            if (!_gameManager.IsLegalGridPoint(targetSpot))
-            {
-                v("$The targetspot isn't a legal grid point");
-                return false;
-            }
-            if (!_gameManager.IsLegalGridPoint(potentialSpot))
-            {
-                v("$The potential/connecting spot isn't a legal grid point");
-                return false;
-            }
-            e("Unknown/TODO type encountered.");
-            return true; // todo remove
-        }
-
-        //public static bool DoesConnectTo(TileType type, Orientation orientation) => false;
 
         /// <summary>
         ///  Returns a list of exits. Does not check validity.
