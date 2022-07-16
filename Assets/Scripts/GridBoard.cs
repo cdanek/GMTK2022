@@ -20,12 +20,23 @@ namespace KaimiraGames.GameJam
     /// </summary>
     public class GridBoard : BetterMonoBehaviour
     {
-        private readonly float halfWidth = 375f;
-        private readonly float halfHeight = 375f;
-        private readonly float tileWidth = 150f;
-        private readonly float tileHeight = 150f;
-        private readonly float halfTileWidth = 75f;
-        private readonly float halfTileHeight = 75f;
+        // 5x5, 750x750
+        //private readonly float halfWidth = 375f;
+        //private readonly float halfHeight = 375f;
+        //private readonly float tileWidth = 150f;
+        //private readonly float tileHeight = 150f;
+        //private readonly float halfTileWidth = 75f;
+        //private readonly float halfTileHeight = 75f;
+
+        // 8x8 800x800
+        private readonly float halfWidth = 400f;
+        private readonly float halfHeight = 400f;
+        private readonly float tileWidth = 100f;
+        private readonly float tileHeight = 100f;
+        private readonly float halfTileWidth = 50f;
+        private readonly float halfTileHeight = 50f;
+
+
 
         private float LeftX => transform.position.x - halfWidth;
         private float RightX => transform.position.x + halfWidth;

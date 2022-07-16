@@ -15,7 +15,10 @@ namespace KaimiraGames.GameJam
 {
     public class Tile : BetterMonoBehaviour, IDragHandler, IPointerClickHandler, IBeginDragHandler, IEndDragHandler
     {
-        public GameObject Cat;
+        public GameObject Cat1;
+        public GameObject Cat2;
+        public GameObject Cat3;
+        public GameObject Cat4;
         public GameObject Cheese;
         public GameObject Cross;
         public GameObject Empty;
@@ -24,18 +27,18 @@ namespace KaimiraGames.GameJam
         public GameObject Star;
         public GameObject Straight;
         public GameObject Tee;
-
         public TileType TileType;
         public GameManager _gameManager;
+        public GridPoint GridPoint = GridPoint.Empty;
+        public bool IsInventoryTile;
+        public Orientation Orientation = Orientation.Up;
+        public int Id;
+
         private GameObject _gameScreen;
         private Vector2 _dragOffset;
         private GameObject _inventoryContainer;
-        public GridPoint GridPoint = GridPoint.Empty;
         private GameObject _gridBoard;
-        public bool IsInventoryTile;
-
-        public Orientation Orientation = Orientation.Up;
-
+        private bool _isDragging;
 
         private void Awake()
         {
@@ -50,7 +53,6 @@ namespace KaimiraGames.GameJam
         private void LocalAssert()
         {
             Assert.IsNotNull(_gameManager);
-            Assert.IsNotNull(Cat);
             Assert.IsNotNull(Cheese);
             Assert.IsNotNull(Cross);
             Assert.IsNotNull(Empty);
@@ -61,26 +63,29 @@ namespace KaimiraGames.GameJam
             Assert.IsNotNull(Tee);
         }
 
-        //private TileType _lastKnownTile;
-        public void InitializeInInventory(TileType type, GameObject inventoryContainer)
+        public void InitializeInInventory(TileType type, GameObject inventoryContainer, int id)
         {
             TileType = type;
             GetGameObject(TileType).gameObject.SetActive(true);
             IsInventoryTile = true;
             _inventoryContainer = inventoryContainer;
+            Id = id;
+            //v($"Created tile of type {type} in inventory with ID{id}");
         }
 
-        public void InitializeOnGrid(TileType type, GridPoint gp, GameObject gridContainer)
+        public void InitializeOnGrid(TileType type, GridPoint gp, GameObject gridContainer, int id)
         {
             TileType = type;
             GetGameObject(TileType).gameObject.SetActive(true);
             GridPoint = gp;
             gameObject.transform.position = _gameManager.GetTileLocation(gp);
+            Id = id;
+            //v($"Created tile of type {type} on grid at {gp} with ID{id}");
         }
 
         private GameObject GetGameObject(TileType type) => type switch
         {
-            TileType.Cat => Cat,
+            TileType.Cat => GetRandomCatGO(),
             TileType.Cheese => Cheese,
             TileType.Cross => Cross,
             TileType.Empty => Empty,
@@ -92,7 +97,13 @@ namespace KaimiraGames.GameJam
             _ => Empty,
         };
 
-        private bool _isDragging;
+        private GameObject GetRandomCatGO() => NumberUtils.Next(4) switch
+        {
+            0 => Cat1,
+            1 => Cat2,
+            2 => Cat3,
+            _ => Cat4,
+        };
 
         public void OnDrag(PointerEventData eventData)
         {
@@ -105,7 +116,7 @@ namespace KaimiraGames.GameJam
         {
             if (_isDragging) return;
             if (!IsInventoryTile) return;
-            v("Tile rotated.");
+            //v("Tile rotated.");
             Rotate();
         }
 
@@ -119,7 +130,7 @@ namespace KaimiraGames.GameJam
         /// <exception cref="NotImplementedException"></exception>
         public static List<GridPoint> GetExits(TileType type, Orientation orientation, GridPoint location)
         {
-            v($"Getting exits for a {type} tile with {orientation} orientation at {location}.");
+            //v($"Getting exits for a {type} tile with {orientation} orientation at {location}.");
             List<GridPoint> noExits = new List<GridPoint>();
             List<GridPoint> allExits = new List<GridPoint>()
             {
@@ -130,23 +141,23 @@ namespace KaimiraGames.GameJam
             };
             if (type == TileType.Empty)
             {
-                v("None.");
+                //v("None.");
                 return noExits;
             }
             if (type == TileType.Cat)
             {
-                v("None.");
+                //v("None.");
                 return noExits;
             }
             if (type == TileType.Star)
             {
-                v("None.");
+                //v("None.");
                 return noExits;
             }
             if (type == TileType.Cheese)
             {
-                v("All of them.");
-                return allExits;
+                //v("All of them.");
+                return noExits;
             }
             if (type == TileType.Cross) return allExits;
 
@@ -327,7 +338,6 @@ namespace KaimiraGames.GameJam
         {
             Orientation--;
             if ((int)Orientation == -1) Orientation = Orientation.Left;
-            //transform.rotation = Rotation;
             transform.DORotateQuaternion(Rotation, 0.2f).SetEase(Ease.OutExpo).Play();
         }
 
@@ -344,10 +354,9 @@ namespace KaimiraGames.GameJam
         {
             if (!IsInventoryTile) return;
             _isDragging = true;
-            //_startDragLocation = transform.position;
             gameObject.transform.SetParent(_gameScreen.transform);
             _dragOffset = (Vector2)transform.position - eventData.position;
-            v($"Begin drag with offset {_dragOffset}");
+            //v($"Begin drag with offset {_dragOffset}");
         }
 
         public void OnEndDrag(PointerEventData eventData)
@@ -356,15 +365,8 @@ namespace KaimiraGames.GameJam
             _isDragging = false;
             if (!_gameManager.IsValidGridLocation(eventData.position + _dragOffset, this))
             {
-                v("Invalid drop location!");
-
-                //TODO - Can't animate this with a layout manager - it sets the location on the NEXT frame.
+                //v("Invalid drop location!");
                 gameObject.transform.SetParent(_inventoryContainer.transform); // this is going to set the destination 
-                //Vector2 startPos = transform.position;
-                //Vector2 endPos = transform.position;
-                //gameObject.transform.position = startPos;
-                //gameObject.transform.DOMove(_startDragLocation, 0.2f).SetEase(Ease.OutExpo).Play();
-                //gameObject.transform.DOMove(endPos, 0.2f).SetEase(Ease.OutExpo).Play();
                 return;
             }
                     
@@ -373,8 +375,8 @@ namespace KaimiraGames.GameJam
             gameObject.transform.position = newPosition;
             gameObject.transform.SetParent(_gridBoard.transform);
             IsInventoryTile = false;
-            _gameManager.DropTile(this, GridPoint);
-            v($"Successful drop on grid: {eventData.position + _dragOffset} at location {GridPoint}");
+            _gameManager.DropTile(this, GridPoint, Id);
+            i($"Successful drop on grid: {eventData.position + _dragOffset} at location {GridPoint}");
         }
     }
 }
