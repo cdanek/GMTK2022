@@ -25,17 +25,16 @@ namespace KaimiraGames.GameJam
         public GameObject Straight;
         public GameObject Tee;
 
-        private TileType _tileType;
-        public bool IsInventoryTile;
+        public TileType TileType;
         public GameManager _gameManager;
         private GameObject _gameScreen;
         private Vector2 _dragOffset;
-        private Vector2 _startDragLocation;
-        private GameObject _inventory;
+        private GameObject _inventoryContainer;
         public GridPoint GridPoint = GridPoint.Empty;
         private GameObject _gridBoard;
+        private bool IsInventoryTile;
 
-        private Orientation Orientation = Orientation.Up;
+        public Orientation Orientation = Orientation.Up;
 
 
         private void Awake()
@@ -62,16 +61,24 @@ namespace KaimiraGames.GameJam
             Assert.IsNotNull(Tee);
         }
 
-        private TileType _lastKnownTile;
-        public void InitializeInInventory(TileType type)
+        //private TileType _lastKnownTile;
+        public void InitializeInInventory(TileType type, GameObject inventoryContainer)
         {
-            GetGameObject(_lastKnownTile).SetActive(false);
-            GetGameObject(type).gameObject.SetActive(true);
-            _inventory = transform.parent.gameObject;
-            _lastKnownTile = type;
+            TileType = type;
+            GetGameObject(TileType).gameObject.SetActive(true);
+            IsInventoryTile = true;
+            _inventoryContainer = inventoryContainer;
         }
 
-        private GameObject GetGameObject(TileType type)  => type switch
+        public void InitializeOnGrid(TileType type, GridPoint gp, GameObject gridContainer)
+        {
+            TileType = type;
+            GetGameObject(TileType).gameObject.SetActive(true);
+            GridPoint = gp;
+            gameObject.transform.position = _gameManager.GetTileLocation(gp);
+        }
+
+        private GameObject GetGameObject(TileType type) => type switch
         {
             TileType.Cat => Cat,
             TileType.Cheese => Cheese,
@@ -89,7 +96,7 @@ namespace KaimiraGames.GameJam
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (!_isDragging) return; 
+            if (!_isDragging) return;
             //v($"OnDrag: {eventData.position}");
             gameObject.transform.position = eventData.position + _dragOffset;
         }
@@ -102,9 +109,244 @@ namespace KaimiraGames.GameJam
             Rotate();
         }
 
+        /// <summary>
+        ///  Returns true/false if this tile/rotation connects to a given GP. Can handle bad GPs.
+        /// </summary>
+        /// <param name="gp"></param>
+        /// <returns></returns>
+        public bool DoesConnectToXXXXXXX(GridPoint potentialSpot, GridPoint targetSpot)
+        {
+            v($"Checking if a {TileType} tile with rotation {Orientation} at {potentialSpot} would connect to {targetSpot}");
+
+            if (!_gameManager.IsLegalGridPoint(targetSpot))
+            {
+                v("$The targetspot isn't a legal grid point");
+                return false;
+            }
+            if (!_gameManager.IsLegalGridPoint(potentialSpot))
+            {
+                v("$The potential/connecting spot isn't a legal grid point");
+                return false;
+            }
+            e("Unknown/TODO type encountered.");
+            return true; // todo remove
+        }
+
+        //public static bool DoesConnectTo(TileType type, Orientation orientation) => false;
 
         /// <summary>
-        /// Rotates clockwise.
+        ///  Returns a list of exits. Does not check validity.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="orientation"></param>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static List<GridPoint> GetExits(TileType type, Orientation orientation, GridPoint location)
+        {
+            v($"Getting exits for a {type} tile with {orientation} orientation at {location}.");
+            List<GridPoint> noExits = new List<GridPoint>();
+            List<GridPoint> allExits = new List<GridPoint>()
+            {
+                location.Up(),
+                location.Down(),
+                location.Left(),
+                location.Right(),
+            };
+            if (type == TileType.Empty)
+            {
+                v("None.");
+                return noExits;
+            }
+            if (type == TileType.Cat)
+            {
+                v("None.");
+                return noExits;
+            }
+            if (type == TileType.Star)
+            {
+                v("None.");
+                return noExits;
+            }
+            if (type == TileType.Cheese)
+            {
+                v("All of them.");
+                return allExits;
+            }
+            if (type == TileType.Cross) return allExits;
+
+            if (type == TileType.Straight)
+            {
+                // Straight piece - up/down
+                if (orientation == Orientation.Up || orientation == Orientation.Down)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Up(),
+                        location.Down(),
+                    };
+                }
+                // straight piece - left/right
+                return new List<GridPoint>()
+                {
+                        location.Right(),
+                        location.Left(),
+                };
+            }
+
+            if (type == TileType.LeftTurn)
+            {
+                //   -+
+                //    |
+                if (orientation == Orientation.Up)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Down(),
+                        location.Left(),
+                    };
+
+                }
+                //    |
+                //   -+
+                if (orientation == Orientation.Left)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Left(),
+                        location.Up(),
+                    };
+
+                }
+                //   |
+                //   +-
+                if (orientation == Orientation.Down)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Right(),
+                        location.Up(),
+                    };
+
+                }
+                //   +-
+                //   |
+                if (orientation == Orientation.Right)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Right(),
+                        location.Down(),
+                    };
+                }
+            }
+
+            if (type == TileType.RightTurn)
+            {
+                //   +-
+                //   |
+                if (orientation == Orientation.Up)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Down(),
+                        location.Right(),
+                    };
+
+                }
+                //  -+
+                //   |
+                if (orientation == Orientation.Left)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Left(),
+                        location.Down(),
+                    };
+
+                }
+                //   |
+                //  -+
+                if (orientation == Orientation.Down)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Left(),
+                        location.Up(),
+                    };
+
+                }
+                //   |
+                //   +-
+                if (orientation == Orientation.Right)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Right(),
+                        location.Up(),
+                    };
+                }
+            }
+
+            if (type == TileType.Tee)
+            {
+                //   |
+                //   +-
+                //   |
+                if (orientation == Orientation.Up)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Up(),
+                        location.Down(),
+                        location.Right(),
+                    };
+
+                }
+                //  -+-
+                //   |
+                if (orientation == Orientation.Left)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Right(),
+                        location.Left(),
+                        location.Down(),
+                    };
+
+                }
+                //   |
+                //  -+
+                //   |
+                if (orientation == Orientation.Down)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Left(),
+                        location.Up(),
+                        location.Down(),
+                    };
+
+                }
+                //    |
+                //   -+-
+                if (orientation == Orientation.Right)
+                {
+                    return new List<GridPoint>()
+                    {
+                        location.Left(),
+                        location.Right(),
+                        location.Up(),
+                    };
+                }
+            }
+
+            throw new NotImplementedException();
+
+        }
+
+        /// <summary>
+        /// Rotates clockwise. Up -> Left -> Down -> Right -> Up
         /// </summary>
         public void Rotate()
         {
@@ -127,7 +369,7 @@ namespace KaimiraGames.GameJam
         {
             if (!IsInventoryTile) return;
             _isDragging = true;
-            _startDragLocation = transform.position;
+            //_startDragLocation = transform.position;
             gameObject.transform.SetParent(_gameScreen.transform);
             _dragOffset = (Vector2)transform.position - eventData.position;
             v($"Begin drag with offset {_dragOffset}");
@@ -137,12 +379,17 @@ namespace KaimiraGames.GameJam
         {
             if (!_isDragging) return;
             _isDragging = false;
-            if (!_gameManager.IsValidGridLocation(eventData.position + _dragOffset))
+            if (!_gameManager.IsValidGridLocation(eventData.position + _dragOffset, this))
             {
                 v("Invalid drop location!");
-                //gameObject.transform.position = _startDragLocation;
-                gameObject.transform.DOMove(_startDragLocation, 0.2f).SetEase(Ease.OutExpo).Play();
-                gameObject.transform.SetParent(_inventory.transform);
+
+                //TODO - Can't animate this with a layout manager - it sets the location on the NEXT frame.
+                gameObject.transform.SetParent(_inventoryContainer.transform); // this is going to set the destination 
+                //Vector2 startPos = transform.position;
+                //Vector2 endPos = transform.position;
+                //gameObject.transform.position = startPos;
+                //gameObject.transform.DOMove(_startDragLocation, 0.2f).SetEase(Ease.OutExpo).Play();
+                //gameObject.transform.DOMove(endPos, 0.2f).SetEase(Ease.OutExpo).Play();
                 return;
             }
                     
@@ -151,6 +398,7 @@ namespace KaimiraGames.GameJam
             gameObject.transform.position = newPosition;
             gameObject.transform.SetParent(_gridBoard.transform);
             IsInventoryTile = false;
+            _gameManager.DropTile(this, GridPoint);
             v($"Successful drop on grid: {eventData.position + _dragOffset} at location {GridPoint}");
         }
     }

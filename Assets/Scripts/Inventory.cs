@@ -34,9 +34,7 @@ namespace KaimiraGames.GameJam
         public void CreateTile(TileType type)
         {
             Tile newTile = Instantiate(TilePrefab, LayoutContainer.transform);
-            //newTile._tileType = type;
-            newTile.InitializeInInventory(type);
-            newTile.IsInventoryTile = true;
+            newTile.InitializeInInventory(type, LayoutContainer);
         }
 
     }

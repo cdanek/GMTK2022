@@ -1,6 +1,7 @@
-
-using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
+using System;
 
 namespace KaimiraGames.GameJam
 {
@@ -36,6 +37,27 @@ namespace KaimiraGames.GameJam
             sb.Append(')');
             return sb.ToString();
         }
-
     }
+
+    public static class GridPointExtensions
+    {
+        public static GridPoint Up(this GridPoint gp) => new GridPoint(gp.X, gp.Y + 1);
+        public static GridPoint Right(this GridPoint gp) => new GridPoint(gp.X + 1, gp.Y);
+        public static GridPoint Left(this GridPoint gp) => new GridPoint(gp.X - 1, gp.Y);
+        public static GridPoint Down(this GridPoint gp) => new GridPoint(gp.X, gp.Y - 1);
+        public static string GetString(this List<GridPoint> gridPoints)
+        {
+            bool foundOne = false;
+            StringBuilder sb = new();
+            foreach (GridPoint gp in gridPoints)
+            {
+                if (foundOne) sb.Append(", ");
+                foundOne = true;
+                sb.Append(gp.ToString());
+            }
+            if (!foundOne) sb.Append("None");
+            return sb.ToString();
+        }
+    }
+
 }

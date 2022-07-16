@@ -15,6 +15,7 @@ namespace KaimiraGames.GameJam
 {
 
     /// <summary>
+    /// Renderer for the grid board.
     /// Grid will be center-anchored, but (0,0) will be bottom left.
     /// </summary>
     public class GridBoard : BetterMonoBehaviour
@@ -62,6 +63,7 @@ namespace KaimiraGames.GameJam
 
             return true;
         }
+
 
         // Center of the grid point
         public Vector2 GetTileLocation(GridPoint gp)

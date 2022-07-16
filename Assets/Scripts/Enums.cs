@@ -1,4 +1,3 @@
-
 namespace KaimiraGames.GameJam
 {
 
@@ -23,5 +22,4 @@ namespace KaimiraGames.GameJam
         Down,
         Left,
     }
-
 }
