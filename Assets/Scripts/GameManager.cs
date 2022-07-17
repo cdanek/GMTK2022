@@ -42,6 +42,45 @@ namespace KaimiraGames.GameJam
         public Button RollsLeftButton;
         public TextMeshProUGUI RestartCampaignButtonText;
         public TextMeshProUGUI CutsceneLevelText;
+
+
+        public GameObject FTUI;
+        public List<GameObject> FTUIScenes;
+        private int FTUIStage = 0;
+
+        public void OnFTUINextClicked()
+        {
+            foreach (GameObject f in FTUIScenes) f.SetActive(false);
+
+            if (FTUIStage == FTUIScenes.Count - 1)
+            {
+                FTUIStage = 0;
+                FTUI.SetActive(false);
+                Fader.gameObject.SetActive(false);
+                if (Level == 0)
+                {
+                    Level++;
+                    CutSceneImages[1].SetActive(true);
+                    CutSceneText.text = GetCutsceneText(Level);
+                    CutsceneLevelText.text = $"Level: {Level}";
+                    StartNewLevel();
+                    StartCoroutine(SpaceCutsceneTitleCoroutine());
+                }
+                return;
+            }
+
+            FTUIStage++;
+            FTUIScenes[FTUIStage].SetActive(true);
+        }
+
+        public void ShowFTUI()
+        {
+            FTUIStage = 0;
+            FTUI.SetActive(true);
+            FTUIScenes[FTUIStage].SetActive(true);
+            Fader.gameObject.SetActive(true);
+        }
+
         private bool _isRestartCampaignSafetyOff = false;
         private List<Tile> InventoryTiles;
         private int maxId = 0;
@@ -49,6 +88,8 @@ namespace KaimiraGames.GameJam
         private Tile _cheeseTile;
         private Vector3 cutsceneOffscreen = new Vector3(3000, 450, 0);
         private Vector3 cutsceneOnscreen = new Vector3(800, 450, 0);
+        private Color cutsceneBlack = new Color(0, 0, 0, 0.9f);
+
 
         // Game Settings
         private int StartingRolls = 25;
@@ -66,7 +107,7 @@ namespace KaimiraGames.GameJam
             InventoryTiles = new List<Tile>();
             LocalAssert();
             StartMusic();
-            Fader.color = Color.black;
+            Fader.color = cutsceneBlack;
             CutScene.SetActive(true);
             Fader.gameObject.SetActive(true);
             HideAllCutsceneImages();
@@ -79,7 +120,9 @@ namespace KaimiraGames.GameJam
             else
             {
                 e("Couldn't find a mice dice level. Starting campaign fresh.");
-                Level = 1;
+                Level = 0; // set to 1 in the FTUI
+                ShowFTUI();
+                return;
             }
             CutSceneImages[GetCutsceneImage(Level)].SetActive(true);
             CutSceneText.text = GetCutsceneText(Level);
@@ -110,6 +153,10 @@ namespace KaimiraGames.GameJam
             RestartCampaignButtonText.text = "Restart";
         }
 
+        public void OnShowFTUIClicked()
+        {
+            ShowFTUI();
+        }
 
         private void StartMusic()
         {
@@ -164,7 +211,7 @@ namespace KaimiraGames.GameJam
             CutSceneImages[GetCutsceneImage(which)].gameObject.SetActive(true);
 
             // fade in fader
-            seq.Append(Fader.DOColor(Color.black, 1f)).SetEase(Ease.Linear);
+            seq.Append(Fader.DOColor(cutsceneBlack, 1f)).SetEase(Ease.Linear);
 
             // slide in cutscene
             seq.Insert(0.5f, CutScene.transform.DOMove(cutsceneOnscreen, 0.5f)).SetEase(Ease.InQuint);
@@ -285,7 +332,7 @@ namespace KaimiraGames.GameJam
             seq.Insert(halfDuration, Fader.DOColor(Color.clear, halfDuration)).SetEase(Ease.Linear);
             yield return seq.Play().WaitForCompletion();
             
-            Fader.color = Color.black;
+            Fader.color = cutsceneBlack;
             CutScene.transform.position = cutsceneOnscreen; // reset
             Fader.gameObject.SetActive(false);
             CutScene.SetActive(false);
