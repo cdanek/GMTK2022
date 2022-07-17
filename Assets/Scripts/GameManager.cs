@@ -28,46 +28,81 @@ namespace KaimiraGames.GameJam
         public AudioClip BackgroundMusic;
         public AudioClip DiceRoll;
         public AudioClip Meow;
-        public AudioClip Barking;
+//        public AudioClip Barking;
         public AudioClip Cancel;
         public AudioClip PlayCard;
         public AudioClip Win;
-        public int Level = 1;
+        public int Level;
         public GameObject MusicCancelIcon;
         public GameObject FXCancelIcon;
-        
         public GameObject CutScene;
         public TextMeshProUGUI CutSceneText;
         public List<GameObject> CutSceneImages;
         public Image Fader;
-
-
-        private int maxId = 0;
+        public Button RollsLeftButton;
+        public TextMeshProUGUI RestartCampaignButtonText;
+        public TextMeshProUGUI CutsceneLevelText;
+        private bool _isRestartCampaignSafetyOff = false;
         private List<Tile> InventoryTiles;
-        //private int StartingCats = 3; (currently based on level)
-        private int StartingRolls = 15;
+        private int maxId = 0;
         private GridPoint _cheesePoint;
         private Tile _cheeseTile;
-        private int GridWidth = 8;
-        private int CatChance = 30;
-
         private Vector3 cutsceneOffscreen = new Vector3(3000, 450, 0);
         private Vector3 cutsceneOnscreen = new Vector3(800, 450, 0);
+
+        // Game Settings
+        private int StartingRolls = 20;
+        private int GridWidth = 8;
+        private int CatChance = 30;
 
         private void Awake()
         {
             GridContents = new Dictionary<GridPoint, Tile>();
             InventoryTiles = new List<Tile>();
             LocalAssert();
-            StartNewLevel();
             StartMusic();
             Fader.color = Color.black;
             CutScene.SetActive(true);
             Fader.gameObject.SetActive(true);
             HideAllCutsceneImages();
-            CutSceneImages[0].SetActive(true);
-            CutSceneText.text = GetCutsceneText(1);
+            RollsLeftButton.interactable = true;
+            if (PlayerPrefs.HasKey("MiceDiceLevel"))
+            {
+                Level = PlayerPrefs.GetInt("MiceDiceLevel");
+                i($"Loading campaign from where we left off.. Level:{Level}");
+            }
+            else
+            {
+                e("Couldn't find a mice dice level. Starting campaign fresh.");
+                Level = 1;
+            }
+            CutSceneImages[GetCutsceneImage(Level)].SetActive(true);
+            CutSceneText.text = GetCutsceneText(Level);
+            CutsceneLevelText.text = $"Level: {Level}";
+            StartNewLevel();
+            StartCoroutine(SpaceCutsceneTitleCoroutine());
         }
+
+        public void OnRestartCampaignClicked()
+        {
+            if (_isRestartCampaignSafetyOff)
+            {
+                Level = 1;
+                StartCoroutine(DoCutscene(Level));
+                return;
+            }
+            _isRestartCampaignSafetyOff = true;
+            RestartCampaignButtonText.text = "Sure?";
+            StartCoroutine(RestartCampaignSafety());
+        }
+
+        private IEnumerator RestartCampaignSafety()
+        {
+            yield return new WaitForSeconds(5f);
+            _isRestartCampaignSafetyOff = false;
+            RestartCampaignButtonText.text = "Restart";
+        }
+
 
         private void StartMusic()
         {
@@ -116,12 +151,7 @@ namespace KaimiraGames.GameJam
             Fader.color = Color.clear;
             CutScene.transform.position = cutsceneOffscreen;
             CutSceneText.text = GetCutsceneText(which);
-
-            if (which == 1) CutSceneImages[0].gameObject.SetActive(true);
-            else if (which == 2) CutSceneImages[1].gameObject.SetActive(true);
-            else if (which == 3) CutSceneImages[2].gameObject.SetActive(true);
-            else if (which == 4) CutSceneImages[3].gameObject.SetActive(true);
-            else CutSceneImages[4].gameObject.SetActive(true); 
+            CutSceneImages[GetCutsceneImage(which)].gameObject.SetActive(true);
 
             // fade in fader
             seq.Append(Fader.DOColor(Color.black, 1f)).SetEase(Ease.Linear);
@@ -131,20 +161,94 @@ namespace KaimiraGames.GameJam
 
             yield return seq.Play().WaitForCompletion();
 
+            CutsceneLevelText.text = $"Level: {Level}";
+
+            StartCoroutine(SpaceCutsceneTitleCoroutine());
+
             // start the next level while the cutscene is up
-            if (which != 1) StartNewLevel();
+            StartNewLevel();
+
+            // ensure roll button is enabled
+            RollsLeftButton.interactable = true;
+        }
+
+        private IEnumerator SpaceCutsceneTitleCoroutine()
+        {
+            float startSpacing = 20;
+            float endSpacing = 50;
+            float duration = 10;
+
+            DateTime startDT = DateTime.Now;
+            TimeSpan ts = DateTime.Now - startDT;
+            while (ts.TotalSeconds < duration)
+            {
+                float t = (float)ts.TotalSeconds / duration;
+
+                //https://easings.net/#easeOutBack
+                float c1 = 1.70158f;
+                float c3 = c1 + 1;
+                t = 1f + c3 * (float)Math.Pow(t - 1, 3) + c1 * (float)Math.Pow(t - 1, 2);
+
+                float currentSpacing = Mathf.Lerp(startSpacing, endSpacing, t);
+                CutsceneLevelText.characterSpacing = currentSpacing;
+                ts = DateTime.Now - startDT;
+                yield return null;
+            }
+            CutsceneLevelText.characterSpacing = endSpacing;
         }
 
         private string GetCutsceneText(int level) => level switch
         {
             1 => "You are George IV, the king of a small mouse kingdom in northeast Wales. Your goal? Provide your subjects with as much cheese as possible. You were given 2 Mice Dice as a birth gift, but you lost one on your 8th birthday, for which your father has never forgiven you. Thus, armed with but one Mouse Douse - you must build a path for your subjects to the fabled Swiss Alps. Good luck!",
-            2 => "He built a great house.",
-            3 => "Then he ate a louse.",
-            4 => "He wore a blouse.",
-            5 => "Once there was a great mouse.",
-            6 => "Once there was a great mouse.",
-            _ => "Amazing.",
+            2 => "Brie is better than Cheddar, but Mozzarella is better than Gouda. No one really knows where Bleu stands, though.",
+            3 => "Your illustrious father, George III, may he rest in peace, always warned you to beware the cats. Like, duh. You're a mouse.",
+            4 => "As you get further in the campaign, you'll see more and more cats. This is, unfortunately, what happens when landscapes are made of cheese, attracting mice and their dice from all over the realm.",
+            5 => "You probably shouldn't have been as surprised as you were that your father was eaten by a cat. As was your brother. And mother. And.. everyone you know, really.",
+            6 => "In the distance, you spy the glorious Mount Brie, its' waxen sheath glimmering in the moonlight. You wonder how such a feast could exist, but your mouse brain does not, unfortunately, grasp the concept of industrial dairy production, so you are left without answers.",
+            7 => "The morning fog is quite thick today. Smoky almost. Perhaps this biome is a byproduct of the Smoky Cheddar Mountain in the distance? Who knows. Better get to work, though, the light sounds of mewing seem to be getting louder.",
+            8 => "Mount Kilimanchego rises in the distance, beckoning you with its' sweet, sweet call. Wait, actually, no, that's just your ring tone. It's your brother Jim - he's in the mousepital, having been, well, eaten whole. You're not exactly sure how they fix that, but you're not a doctor.",
+            9 => "Jim didn't make it. Shame - you're down to your last 46 brothers and sisters. It's surprising that you're only up to George the Fourth, but George isn't that common of a mouse name. Henry's dynasty, on the other hand, went all the way up to the 800s.",
+            10 => "Sometimes you wonder where all this cheese comes from. Actually, no you don't. Let's eat.",
+            11 => "Great news, the base on Muenster Mountain is a whopping 180 cm! Good thing you brought your toothpick ski poles, looks like it's going to be another great day.",
+            12 => "Sometimes the crown weighs heavily upon your head. 'We want more cheese!' echo your subjects, almost in a never ending cacophony of mousey noise. HA, just kidding, we all love cheese. Let's get it!",
+            13 => "Mew, mew mew, mew mew mew mew. Mew mew? Mew mew. Your efforts at learning the cat language are frustrated by the lack of good teachers.",
+            14 => "You've tried to make peace with the cats, but they seem blissfully and ferociously un-sentient.",
+            15 => "Sometimes you wonder how a Mouse Douse has the power to create cobbled roads so easily. Was it always this way? What scientific explanation could there be? Is there a god?",
+            16 => "Are you still playing?",
+            17 => "No, I mean, really. The game is over now.",
+            18 => "There's no more text.",
+            19 => "That's it, it's over. Go home!",
+            20 => "...",
+            21 => "Really??",
+            22 => "You are the greatest gamer of all time. Will you leave now?",
+            23 => "Please go.",
+            24 => "I'd like to thank my mother, my father, the academy, and mozzarella.",
+            25 => "Hot take: Babybels aren't cheese.",
+            26 => "I'm trapped in a clothing factory in Poughkeepsie. Send help!",
+            27 => "If you play a game long enough, you'll hear the sound effects in your sleep.",
+            28 => "Woof woof! Woof, woof woof, woof. Moo woof moo woof.",
+            29 => "Knock knock. Who's there?",
+            30 => "The interrupting cow. The interrupt- MOO!!!",
+            31 => "That wasn't funny.",
+            32 => "It was, a little.",
+            33 => "OK, there's no more. Really, this time.",
+            _ => "Amazing!",
         };
+
+        private int GetCutsceneImage(int level) => level switch
+        {
+            1 => 0,
+            2 => 1,
+            3 => 2,
+            4 => 3,
+            5 => 4,
+            6 => 5,
+            7 => 6,
+            8 => 7,
+            9 => 8,
+            _ => NumberUtils.Next(CutSceneImages.Count),
+        };
+
 
         private IEnumerator HideCutsceneCoroutine()
         {
@@ -177,11 +281,11 @@ namespace KaimiraGames.GameJam
             _meowSource.PlayOneShot(Meow);
         }
 
-        private void PlayBarking()
-        {
-            _meowSource.pitch = NumberUtils.NextFloat(0.8f, 1.2f);
-            _meowSource.PlayOneShot(Barking);
-        }
+        //private void PlayBarking()
+        //{
+        //    _meowSource.pitch = NumberUtils.NextFloat(0.8f, 1.2f);
+        //    _meowSource.PlayOneShot(Barking);
+        //}
 
         private void StartNewLevel()
         {
@@ -194,18 +298,19 @@ namespace KaimiraGames.GameJam
             InventoryTiles.Clear();
             maxId++;
 
-
             foreach (GridPoint key in GridContents.Keys)
             {
                 Destroy(GridContents[key].gameObject);
             }
             GridContents.Clear();
-            RollsLeft = StartingRolls;
+
+            RollsLeft = Math.Max(StartingRolls - (Level / 2), 12); // 20->12
+
             UpdateTextElements();
 
             // Goal
             int x = NumberUtils.Next(GridWidth);
-            _cheesePoint = new GridPoint(x, GridWidth-1);
+            _cheesePoint = new GridPoint(x, GridWidth-1 - (NumberUtils.NextBool() ? 1 : 0));
             _cheeseTile = Instantiate(TilePrefab, Grid.gameObject.transform);
             _cheeseTile.InitializeOnGrid(TileType.Cheese, _cheesePoint, Grid.gameObject, ++maxId);
             GridContents[_cheesePoint] = _cheeseTile;
@@ -218,7 +323,8 @@ namespace KaimiraGames.GameJam
             GridContents[startingGridPoint] = startingCrossTile;
 
             //cats!
-            for (int i = 0; i < Level + 3; i++)
+            int howManyCats = Math.Min(15, Level + 1);
+            for (int i = 0; i < howManyCats; i++)
             {
                 GridPoint catpoint = new GridPoint(NumberUtils.Next(GridWidth), NumberUtils.Next(GridWidth));
                 if (GetTile(catpoint) != null) // try again
@@ -234,15 +340,16 @@ namespace KaimiraGames.GameJam
             //freebie in inventory
             TileType type = GetRandomInventoryTile();
             CreateInventoryTile(type);
-
         }
 
         public bool CheckForWin()
         {
             if (IsConnectedToCheesePoint())
             {
-                e("Winner!");
+                i("Winner!");
                 Level++;
+                PlayerPrefs.SetInt("MiceDiceLevel", Level);
+                PlayerPrefs.Save();
                 StartCoroutine(DoCutscene(Level));
                 return true;
             }
@@ -294,6 +401,9 @@ namespace KaimiraGames.GameJam
         public void OnRollClicked()
         {
             RollsLeft--;
+            UpdateTextElements();
+            if (RollsLeft == 0) RollsLeftButton.interactable = false;
+
             bool didDestroyInventoryTile = false;
             if (InventoryTiles.Count == 4)
             {
@@ -315,9 +425,7 @@ namespace KaimiraGames.GameJam
             }
 
             TileType newTileType = GetRandomRollTile();
-            //i($"Rolled a {newTileType}.");
             CreateInventoryTile(newTileType);
-            UpdateTextElements();
             _sfxSource.PlayOneShot(didDestroyInventoryTile ? Cancel : DiceRoll);
         }
 
@@ -398,6 +506,7 @@ namespace KaimiraGames.GameJam
 
         private void UpdateTextElements()
         {
+            RollsLeftText.color = (RollsLeft <= 3) ? Color.red : Color.gray;
             LevelText.text = $"Level: {Level}";
             RollsLeftText.text = $"Rolls Left: {RollsLeft}";
         }
@@ -453,8 +562,7 @@ namespace KaimiraGames.GameJam
 
         public void OnResignClicked()
         {
-            Level = 1;
-            StartNewLevel();
+            StartCoroutine(DoCutscene(Level));
         }
 
         private bool IsConnected(GridPoint gp, Tile tile)

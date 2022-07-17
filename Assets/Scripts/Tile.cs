@@ -20,11 +20,14 @@ namespace KaimiraGames.GameJam
         public GameObject Cat3;
         public GameObject Cat4;
         public GameObject Cheese;
+        public GameObject Cheese2;
+        public GameObject Cheese3;
+        public GameObject Cheese4;
+        public GameObject Cheese5;
         public GameObject Cross;
         public GameObject Empty;
         public GameObject LeftTurn;
         public GameObject RightTurn;
-        public GameObject Star;
         public GameObject Straight;
         public GameObject Tee;
         public TileType TileType;
@@ -58,7 +61,6 @@ namespace KaimiraGames.GameJam
             Assert.IsNotNull(Empty);
             Assert.IsNotNull(LeftTurn);
             Assert.IsNotNull(RightTurn);
-            Assert.IsNotNull(Star);
             Assert.IsNotNull(Straight);
             Assert.IsNotNull(Tee);
         }
@@ -86,15 +88,24 @@ namespace KaimiraGames.GameJam
         private GameObject GetGameObject(TileType type) => type switch
         {
             TileType.Cat => GetRandomCatGO(),
-            TileType.Cheese => Cheese,
+            TileType.Cheese => GetRandomCheeseGO(),
             TileType.Cross => Cross,
             TileType.Empty => Empty,
             TileType.LeftTurn => LeftTurn,
             TileType.RightTurn => RightTurn,
-            TileType.Star => Star,
             TileType.Straight => Straight,
             TileType.Tee => Tee,
             _ => Empty,
+        };
+
+
+        private GameObject GetRandomCheeseGO() => NumberUtils.Next(5) switch
+        {
+            0 => Cheese,
+            1 => Cheese2,
+            2 => Cheese3,
+            3 => Cheese4,
+            _ => Cheese5,
         };
 
         private GameObject GetRandomCatGO() => NumberUtils.Next(4) switch
