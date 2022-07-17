@@ -45,6 +45,38 @@ namespace KaimiraGames.GameJam
         public static GridPoint Right(this GridPoint gp) => new GridPoint(gp.X + 1, gp.Y);
         public static GridPoint Left(this GridPoint gp) => new GridPoint(gp.X - 1, gp.Y);
         public static GridPoint Down(this GridPoint gp) => new GridPoint(gp.X, gp.Y - 1);
+
+        public static GridPoint NE(this GridPoint gp) => new GridPoint(gp.X + 1, gp.Y + 1);
+        public static GridPoint SE(this GridPoint gp) => new GridPoint(gp.X + 1, gp.Y - 1);
+        public static GridPoint NW(this GridPoint gp) => new GridPoint(gp.X - 1, gp.Y + 1);
+        public static GridPoint SW(this GridPoint gp) => new GridPoint(gp.X - 1, gp.Y - 1);
+
+        public static List<GridPoint> AllOrthos(this GridPoint gp)
+        {
+            return new List<GridPoint>()
+            {
+                gp.Up(),
+                gp.Down(),
+                gp.Left(),
+                gp.Right(),
+            };
+        }
+
+        public static List<GridPoint> AllAdjacent(this GridPoint gp)
+        {
+            return new List<GridPoint>()
+            {
+                gp.Up(),
+                gp.Down(),
+                gp.Left(),
+                gp.Right(),
+                gp.NE(),
+                gp.NW(),
+                gp.SE(),
+                gp.SW(),
+            };
+        }
+
         public static string GetString(this List<GridPoint> gridPoints)
         {
             bool foundOne = false;

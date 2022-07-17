@@ -51,9 +51,14 @@ namespace KaimiraGames.GameJam
         private Vector3 cutsceneOnscreen = new Vector3(800, 450, 0);
 
         // Game Settings
-        private int StartingRolls = 20;
+        private int StartingRolls = 25;
         private int GridWidth = 8;
-        private int CatChance = 30;
+        private int CatChance = 25;
+
+        // Animation settings
+        private float _cutsceneSplashDuration = 10;
+        private float _cutsceneSplashCharacterStart = 20;
+        private float _cutsceneSplashCharacterEnd = 50;
 
         private void Awake()
         {
@@ -88,6 +93,8 @@ namespace KaimiraGames.GameJam
             if (_isRestartCampaignSafetyOff)
             {
                 Level = 1;
+                PlayerPrefs.SetInt("MiceDiceLevel", Level);
+                PlayerPrefs.Save();
                 StartCoroutine(DoCutscene(Level));
                 return;
             }
@@ -146,11 +153,14 @@ namespace KaimiraGames.GameJam
 
             // set text and images
             Fader.gameObject.SetActive(true);
-            CutScene.SetActive(true);
-            HideAllCutsceneImages();
             Fader.color = Color.clear;
+            CutScene.SetActive(true);
+            CutsceneLevelText.text = $"Level: {Level}";
             CutScene.transform.position = cutsceneOffscreen;
             CutSceneText.text = GetCutsceneText(which);
+            CutsceneLevelText.characterSpacing = _cutsceneSplashCharacterStart;
+
+            HideAllCutsceneImages();
             CutSceneImages[GetCutsceneImage(which)].gameObject.SetActive(true);
 
             // fade in fader
@@ -160,8 +170,6 @@ namespace KaimiraGames.GameJam
             seq.Insert(0.5f, CutScene.transform.DOMove(cutsceneOnscreen, 0.5f)).SetEase(Ease.InQuint);
 
             yield return seq.Play().WaitForCompletion();
-
-            CutsceneLevelText.text = $"Level: {Level}";
 
             StartCoroutine(SpaceCutsceneTitleCoroutine());
 
@@ -174,9 +182,11 @@ namespace KaimiraGames.GameJam
 
         private IEnumerator SpaceCutsceneTitleCoroutine()
         {
-            float startSpacing = 20;
-            float endSpacing = 50;
-            float duration = 10;
+            float startSpacing = _cutsceneSplashCharacterStart;
+            float endSpacing = _cutsceneSplashCharacterEnd;
+            float duration = _cutsceneSplashDuration;
+
+            CutsceneLevelText.characterSpacing = startSpacing;
 
             DateTime startDT = DateTime.Now;
             TimeSpan ts = DateTime.Now - startDT;
@@ -199,40 +209,53 @@ namespace KaimiraGames.GameJam
 
         private string GetCutsceneText(int level) => level switch
         {
-            1 => "You are George IV, the king of a small mouse kingdom in northeast Wales. Your goal? Provide your subjects with as much cheese as possible. You were given 2 Mice Dice as a birth gift, but you lost one on your 8th birthday, for which your father has never forgiven you. Thus, armed with but one Mouse Douse - you must build a path for your subjects to the fabled Swiss Alps. Good luck!",
-            2 => "Brie is better than Cheddar, but Mozzarella is better than Gouda. No one really knows where Bleu stands, though.",
-            3 => "Your illustrious father, George III, may he rest in peace, always warned you to beware the cats. Like, duh. You're a mouse.",
-            4 => "As you get further in the campaign, you'll see more and more cats. This is, unfortunately, what happens when landscapes are made of cheese, attracting mice and their dice from all over the realm.",
-            5 => "You probably shouldn't have been as surprised as you were that your father was eaten by a cat. As was your brother. And mother. And.. everyone you know, really.",
-            6 => "In the distance, you spy the glorious Mount Brie, its' waxen sheath glimmering in the moonlight. You wonder how such a feast could exist, but your mouse brain does not, unfortunately, grasp the concept of industrial dairy production, so you are left without answers.",
-            7 => "The morning fog is quite thick today. Smoky almost. Perhaps this biome is a byproduct of the Smoky Cheddar Mountain in the distance? Who knows. Better get to work, though, the light sounds of mewing seem to be getting louder.",
-            8 => "Mount Kilimanchego rises in the distance, beckoning you with its' sweet, sweet call. Wait, actually, no, that's just your ring tone. It's your brother Jim - he's in the mousepital, having been, well, eaten whole. You're not exactly sure how they fix that, but you're not a doctor.",
-            9 => "Jim didn't make it. Shame - you're down to your last 46 brothers and sisters. It's surprising that you're only up to George the Fourth, but George isn't that common of a mouse name. Henry's dynasty, on the other hand, went all the way up to the 800s.",
-            10 => "Sometimes you wonder where all this cheese comes from. Actually, no you don't. Let's eat.",
-            11 => "Great news, the base on Muenster Mountain is a whopping 180 cm! Good thing you brought your toothpick ski poles, looks like it's going to be another great day.",
-            12 => "Sometimes the crown weighs heavily upon your head. 'We want more cheese!' echo your subjects, almost in a never ending cacophony of mousey noise. HA, just kidding, we all love cheese. Let's get it!",
-            13 => "Mew, mew mew, mew mew mew mew. Mew mew? Mew mew. Your efforts at learning the cat language are frustrated by the lack of good teachers.",
-            14 => "You've tried to make peace with the cats, but they seem blissfully and ferociously un-sentient.",
-            15 => "Sometimes you wonder how a Mouse Douse has the power to create cobbled roads so easily. Was it always this way? What scientific explanation could there be? Is there a god?",
-            16 => "Are you still playing?",
-            17 => "No, I mean, really. The game is over now.",
-            18 => "There's no more text.",
-            19 => "That's it, it's over. Go home!",
-            20 => "...",
-            21 => "Really??",
-            22 => "You are the greatest gamer of all time. Will you leave now?",
-            23 => "Please go.",
+            1 => "You are George IV, the king of a small mouse kingdom in northeast Wales. Your goal? Provide your subjects with as much cheese as possible.",
+            2 => "Your heirloom was two Mice Dice, but you lost one on your 8th birthday. Your father has never forgiven you.",
+            3 => "Thus, armed with but one Mouse Douse - you must navigate a path to the hidden cheese of the fabled Swiss Alps.",
+            4 => "With enough luck, you'll avoid the cats of doom and return home with mountains of cheese.",
+            5 => "Your father, George III, may he rest in peace, warned you to beware the cats. Really, dad? Like, duh. We're mice.",
+
+            6 => "As you travel farther from home, you notice more and more cats.",
+            7 => "It makes sense. Mountains of cheese? More mice. More mice? More cats.",
+            8 => "You probably shouldn't have been as surprised as you were that your father was eaten by a cat. As was your brother. And mother. And.. everyone you know, really.",
+            9 => "Mount Kilimanchego rises in the distance, beckoning you with its' sweet, sweet call. Wait, no, that's just your ring tone. Oh no! Terrible news! (continued)",
+            10 => "It's your brother, Jim. He's in the mousepital, having been, uhh.. eaten whole. You're not exactly sure how they fix that, but you're not a doctor.",
+            11 => "Brie is better than Cheddar, but Mozzarella is better than Gouda. No one really knows where Gorgonzola stands, though.",
+            12 => "Brother Jim didn't make it. Shame - you're down to your last 46 brothers and sisters.",
+            13 => "It's surprising that you're only the fourth George in your family. George really isn't that common of a mouse name, I guess. Baba-wala-moomoo-ding, on the other hand... You can think of at least 800.",
+
+            14 => "In the distance, you spy the glorious Mount Brie, its' waxen sheath glimmering in the moonlight.",
+            15 => "Sometimes you wonder how such feasts of cheese could exist. Your mouse brain does not, unfortunately, grasp the concept of industrial dairy production.",
+            16 => "The morning fog is quite thick today. Smoky almost. You must be near the Smoky Cheddar Mountain.",
+            17 => "Sometimes you wonder where all this cheese comes from. Actually, no you don't. Let's eat.",
+            18 => "Great news, the base on Muenster Mountain is a whopping 180 cm! Good thing you brought your toothpick ski poles, looks like it's going to be another great day.",
+            19 => "Sometimes the crown weighs heavily upon your head. 'We want more cheese!' echo your subjects, almost in a never ending cacophony of mousey noise.",
+            20 => "GET THAT CHEDDA",
+            21 => "Mew, mew mew, mew mew mew mew. Mew mew? Mew mew. Your efforts at learning the cat language are frustrated by the lack of good teachers.",
+            22 => "You've tried to make peace with the cats, but they seem blissfully and ferociously un-sentient.",
+            23 => "Is there a god? There is, and his name is Sean. Parma Sean.",
             24 => "I'd like to thank my mother, my father, the academy, and mozzarella.",
             25 => "Hot take: Babybels aren't cheese.",
-            26 => "I'm trapped in a clothing factory in Poughkeepsie. Send help!",
-            27 => "If you play a game long enough, you'll hear the sound effects in your sleep.",
-            28 => "Woof woof! Woof, woof woof, woof. Moo woof moo woof.",
-            29 => "Knock knock. Who's there?",
-            30 => "The interrupting cow. The interrupt- MOO!!!",
-            31 => "That wasn't funny.",
-            32 => "It was, a little.",
-            33 => "OK, there's no more. Really, this time.",
-            _ => "Amazing!",
+            26 => "Woof woof! Woof, woof woof, woof. Moo woof moo woof.",
+            27 => "Knock knock. Who's there? The interrupting cow. The interrupt- MOO!!!",
+            28 => "This game was brought to you by the letter E. And C. And S. And H. CHEESE.",
+            29 => "MOUSE, NACHO, MOZZA ... Dangit, I hate Wordle ... GOUDA, HEVRE, QUESO. Oh, of course, COLBY!",
+            30 => "Are you still playing?",
+            31 => "No, I mean, really. The game is over now.",
+            32 => "There's no more text.",
+            33 => "That's it, it's over. Go home!",
+            34 => "...",
+            35 => "Really??",
+            36 => "You are the greatest gamer of all time. Will you leave now?",
+            37 => "Please go.",
+            38 => "I'm trapped in a clothing factory in Poughkeepsie. Send help!",
+            39 => "If you play a game long enough, you'll hear the sound effects in your sleep.",
+            40 => "That wasn't funny.",
+            41 => "It was, a little.",
+            42 => "OK, there's no more.",
+            43 => "For your perserverance, you get nothing! You lose! Good day, sir!",
+            44 => "Ah, I'm just kidding. You got through 44 levels of this game. You earn... a pat on the back.",
+            _ => "Thanks for playing. :)",
         };
 
         private int GetCutsceneImage(int level) => level switch
@@ -309,18 +332,19 @@ namespace KaimiraGames.GameJam
             UpdateTextElements();
 
             // Goal
-            int x = NumberUtils.Next(GridWidth);
-            _cheesePoint = new GridPoint(x, GridWidth-1 - (NumberUtils.NextBool() ? 1 : 0));
+            int newGridPointX = NumberUtils.Next(GridWidth);
+            _cheesePoint = new GridPoint(newGridPointX, GridWidth - 1 - NumberUtils.Next(3));
             _cheeseTile = Instantiate(TilePrefab, Grid.gameObject.transform);
             _cheeseTile.InitializeOnGrid(TileType.Cheese, _cheesePoint, Grid.gameObject, ++maxId);
             GridContents[_cheesePoint] = _cheeseTile;
 
             // Starting Cross
-            x = NumberUtils.Next(GridWidth);
-            GridPoint startingGridPoint = new GridPoint(x, 0);
+            newGridPointX = NumberUtils.Next(GridWidth);
+            GridPoint startingGridPoint = new GridPoint(newGridPointX, 0);
             Tile startingCrossTile = Instantiate(TilePrefab, Grid.gameObject.transform);
             startingCrossTile.InitializeOnGrid(TileType.Cross, startingGridPoint, Grid.gameObject, ++maxId);
             GridContents[startingGridPoint] = startingCrossTile;
+            _ = startingCrossTile.UnFog();
 
             //cats!
             int howManyCats = Math.Min(15, Level + 1);
@@ -340,6 +364,24 @@ namespace KaimiraGames.GameJam
             //freebie in inventory
             TileType type = GetRandomInventoryTile();
             CreateInventoryTile(type);
+
+            // Fog everything else
+            for(int x = 0; x < GridWidth; x++)
+            {
+                for (int y = 0; y < GridWidth; y++)
+                {
+                    GridPoint newGP = new GridPoint(x, y);
+                    if (!GridContents.ContainsKey(newGP)) /// nothing here
+                    {
+                        //v($"Creating a fog tile at {newGP}");
+                        Tile emptyTile = Instantiate(TilePrefab, Grid.gameObject.transform);
+                        emptyTile.InitializeOnGrid(TileType.Empty, newGP, Grid.gameObject, ++maxId);
+                        GridContents[newGP] = emptyTile;
+                    }
+                }
+            }
+
+            UnfogGridpoint(startingGridPoint);
         }
 
         public bool CheckForWin()
@@ -370,6 +412,7 @@ namespace KaimiraGames.GameJam
             {
                 if (!IsLegalGridPoint(gp)) continue;
                 if (!GridContents.TryGetValue(gp, out Tile tile)) continue;
+                if (GridContents[gp].TileType == TileType.Empty) continue;
                 if (IsPathTile(tile))
                 {
                     foreach (GridPoint exit in Tile.GetExits(tile.TileType, tile.Orientation, tile.GridPoint))
@@ -404,12 +447,6 @@ namespace KaimiraGames.GameJam
             UpdateTextElements();
             if (RollsLeft == 0) RollsLeftButton.interactable = false;
 
-            bool didDestroyInventoryTile = false;
-            if (InventoryTiles.Count == 4)
-            {
-                didDestroyInventoryTile = true;
-                DestroyRandomInventoryTile();
-            }
 
             if (NumberUtils.Next(100) < CatChance)
             {
@@ -418,10 +455,18 @@ namespace KaimiraGames.GameJam
                 {
                     Tile catTile = Instantiate(TilePrefab, Grid.gameObject.transform);
                     catTile.InitializeOnGrid(TileType.Cat, catpoint, Grid.gameObject, ++maxId);
+                    _ = catTile.UnFog();
                     GridContents[catpoint] = catTile;
                     PlayMeow();
                     return;
                 }
+            }
+
+            bool didDestroyInventoryTile = false;
+            if (InventoryTiles.Count == 4)
+            {
+                didDestroyInventoryTile = true;
+                DestroyRandomInventoryTile();
             }
 
             TileType newTileType = GetRandomRollTile();
@@ -459,25 +504,12 @@ namespace KaimiraGames.GameJam
             List<GridPoint> candidatePoints = new List<GridPoint>();
             foreach (GridPoint gp in allPoints)
             {
-                if (GridContents.ContainsKey(gp.Up()) && IsPathTile(GridContents[gp.Up()]) && !candidatePoints.Contains(gp))
+                foreach (GridPoint neighbor in gp.AllAdjacent())
                 {
-                    candidatePoints.Add(gp);
-                    continue;
-                }
-                if (GridContents.ContainsKey(gp.Down()) && IsPathTile(GridContents[gp.Down()]) && !candidatePoints.Contains(gp))
-                {
-                    candidatePoints.Add(gp);
-                    continue;
-                }
-                if (GridContents.ContainsKey(gp.Right()) && IsPathTile(GridContents[gp.Right()]) && !candidatePoints.Contains(gp))
-                {
-                    candidatePoints.Add(gp);
-                    continue;
-                }
-                if (GridContents.ContainsKey(gp.Left()) && IsPathTile(GridContents[gp.Left()]) && !candidatePoints.Contains(gp))
-                {
-                    candidatePoints.Add(gp);
-                    continue;
+                    if (!IsLegalGridPoint(neighbor)) continue; // off-grid
+                    if (GridContents.ContainsKey(neighbor) && GridContents[neighbor].TileType != TileType.Empty) continue; // contains something else
+                    if (candidatePoints.Contains(neighbor)) continue; // already in candidates
+                    candidatePoints.Add(neighbor);
                 }
             }
             //v($"Candidate points:{candidatePoints.Count}");
@@ -487,7 +519,7 @@ namespace KaimiraGames.GameJam
             List<GridPoint> candidatePoints2 = new List<GridPoint>();
             foreach (GridPoint gp in candidatePoints)
             {
-                if (!GridContents.ContainsKey(gp))
+                if (!GridContents.ContainsKey(gp)) // This still works because candidate points cannot have fog
                 {
                     //v($"Space at {gp} is empty. Adding to cp2");
                     candidatePoints2.Add(gp);
@@ -500,7 +532,6 @@ namespace KaimiraGames.GameJam
             //v($"Candidate points 2:{candidatePoints.Count}");
             if (candidatePoints2.Count == 0) return GridPoint.Empty;
 
-
             return candidatePoints2[NumberUtils.Next(candidatePoints2.Count)];
         }
 
@@ -511,9 +542,28 @@ namespace KaimiraGames.GameJam
             RollsLeftText.text = $"Rolls Left: {RollsLeft}";
         }
 
+        private void UnfogGridpoint(GridPoint gp)
+        {
+            List<GridPoint> neighbors = gp.AllAdjacent();
+            foreach (GridPoint neighbor in neighbors)
+            {
+                if (!IsLegalGridPoint(neighbor)) continue; // is on grid?
+                if (!GridContents.ContainsKey(neighbor)) continue; // is already unfogged?
+                bool wasTileThere = GridContents[neighbor].UnFog();
+                if (!wasTileThere)
+                {
+                    Tile empty = GridContents[neighbor];
+                    Destroy(empty.gameObject);
+                    GridContents.Remove(neighbor); // nothing there
+                }
+            }
+        }
+
         public void DropTile(Tile tile, GridPoint gp, int id)
         {
-            GridContents[gp] = tile;
+            GridContents[gp] = tile; // can only drop on unfogged - this shouldn't collide
+            UnfogGridpoint(gp);
+
             Tile removedFromInventoryTile = InventoryTiles.Where(x => x.Id == id).FirstOrDefault();
             if (removedFromInventoryTile == null)
             {
@@ -618,14 +668,13 @@ namespace KaimiraGames.GameJam
 
             GridPoint gp = GetGridPoint(position);
 
-            if (GridContents.ContainsKey(gp))
+            if (!GridContents.ContainsKey(gp))
             {
-                e($"Can't drop there - something else is there: {GridContents[gp]}");
-                return false; // grid space is occupied
+                // if the dropped item connects to another
+                return IsConnected(gp, draggedTile);
             }
 
-            // if the dropped item connects to another
-            return IsConnected(gp, draggedTile);
+            return false; // tried to drop on a fogged or non-empty square
         }
 
         public bool IsOnGrid(Vector2 position) => Grid.IsOnGrid(position);

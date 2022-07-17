@@ -36,12 +36,15 @@ namespace KaimiraGames.GameJam
         public bool IsInventoryTile;
         public Orientation Orientation = Orientation.Up;
         public int Id;
+        public bool IsFogged = true;
 
         private GameObject _gameScreen;
         private Vector2 _dragOffset;
         private GameObject _inventoryContainer;
         private GameObject _gridBoard;
         private bool _isDragging;
+
+        
 
         private void Awake()
         {
@@ -51,6 +54,7 @@ namespace KaimiraGames.GameJam
             _gameScreen = _gameManager.gameObject;
             IsInventoryTile = false;
             _isDragging = false;
+            IsFogged = true;
         }
 
         private void LocalAssert()
@@ -72,17 +76,37 @@ namespace KaimiraGames.GameJam
             IsInventoryTile = true;
             _inventoryContainer = inventoryContainer;
             Id = id;
+            IsFogged = false;
             //v($"Created tile of type {type} in inventory with ID{id}");
         }
 
+        /// <summary>
+        /// Items on grid are fogged by default. Call UnFog to show them.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="gp"></param>
+        /// <param name="gridContainer"></param>
+        /// <param name="id"></param>
         public void InitializeOnGrid(TileType type, GridPoint gp, GameObject gridContainer, int id)
         {
             TileType = type;
-            GetGameObject(TileType).gameObject.SetActive(true);
             GridPoint = gp;
             gameObject.transform.position = _gameManager.GetTileLocation(gp);
             Id = id;
+            GetGameObject(TileType.Empty).gameObject.SetActive(true); // show the fog tile.
+            //GetGameObject(TileType).gameObject.SetActive(true);
             //v($"Created tile of type {type} on grid at {gp} with ID{id}");
+        }
+
+        /// <summary>
+        /// Unfogs and returns true if this has a real tile (type != empty). Delete it elsewhere.
+        /// </summary>
+        public bool UnFog()
+        {
+            GetGameObject(TileType.Empty).gameObject.SetActive(false); // hide the fog tile.
+            if (TileType != TileType.Empty && IsFogged == true) GetGameObject(TileType).gameObject.SetActive(true); // set active if currently fogged
+            IsFogged = false;
+            return (TileType != TileType.Empty);
         }
 
         private GameObject GetGameObject(TileType type) => type switch

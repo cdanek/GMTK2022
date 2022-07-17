@@ -158,8 +158,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -591.01, y: 331.54}
-  m_SizeDelta: {x: 325.5763, y: 124.9159}
+  m_AnchoredPosition: {x: -588.91, y: 392.93}
+  m_SizeDelta: {x: 325.5763, y: 93.5437}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &59493152
 MonoBehaviour:
@@ -720,7 +720,7 @@ GameObject:
   - component: {fileID: 246837304}
   - component: {fileID: 246837303}
   m_Layer: 5
-  m_Name: Image10 - tbd
+  m_Name: Image10 - mouse
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -746,7 +746,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a52b63cda3524824a93ff7c66e0cd53e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ab61968c3d8c03343846a4a48b7dd8c8, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -781,7 +781,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -472, y: 5.9999866}
+  m_AnchoredPosition: {x: -451, y: 5.9985}
   m_SizeDelta: {x: 351.0851, y: 351.0851}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &271016308
@@ -1763,8 +1763,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 4.494507, y: 23.542587}
-  m_SizeDelta: {x: -112.3398, y: -113.6241}
+  m_AnchoredPosition: {x: 0.26820374, y: 23.542587}
+  m_SizeDelta: {x: -126.4277, y: -113.6241}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &571088555
 MonoBehaviour:
@@ -1786,9 +1786,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Get the Cheese! \nBuild <i>from</i> paths. No flying mice.\nRoll for tiles.
-    You can only hold 4.\nClick a tile to rotate it.\nCats block your path.\nSometimes,
-    rolling gets cats instead. \nMeow."
+  m_text: 'Get the Cheese! Paths must connect. Roll for tiles, but only hold 4. Click
+    a tile to rotate it. Cats block your path. Sometimes, rolling gets cats instead. '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 77f4876b3e70843478ef65e2c4c9f04c, type: 2}
   m_sharedMaterial: {fileID: 6662593658772634810, guid: 77f4876b3e70843478ef65e2c4c9f04c, type: 2}
@@ -1815,7 +1814,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 15.55
+  m_fontSize: 22.3
   m_fontSizeBase: 20.4
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1827,7 +1826,7 @@ MonoBehaviour:
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
-  m_lineSpacing: 43.98
+  m_lineSpacing: 0
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
@@ -3345,8 +3344,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -596, y: -207.27}
-  m_SizeDelta: {x: 196.8764, y: 229.7907}
+  m_AnchoredPosition: {x: -594.4, y: -156.99}
+  m_SizeDelta: {x: 353.66, y: 353.6578}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1328820315
 MonoBehaviour:
@@ -3355,7 +3354,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1328820313}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -3621,7 +3620,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1482471689
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3761,7 +3760,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1504325644
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3991,7 +3990,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -591.01, y: 119}
+  m_AnchoredPosition: {x: -591.01, y: 183}
   m_SizeDelta: {x: 379.98, y: 326.3245}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1511056617
@@ -5010,7 +5009,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1981870312
 RectTransform:
   m_ObjectHideFlags: 0
