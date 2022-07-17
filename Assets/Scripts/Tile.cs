@@ -30,6 +30,14 @@ namespace KaimiraGames.GameJam
         public GameObject RightTurn;
         public GameObject Straight;
         public GameObject Tee;
+        public GameObject FogTopLeft;
+        public GameObject FogTopRight;
+        public GameObject FogBottomLeft;
+        public GameObject FogBottomRight;
+        public GameObject FogTop;
+        public GameObject FogLeft;
+        public GameObject FogBottom;
+        public GameObject FogRight;
         public TileType TileType;
         public GameManager _gameManager;
         public GridPoint GridPoint = GridPoint.Empty;
@@ -99,12 +107,16 @@ namespace KaimiraGames.GameJam
         }
 
         /// <summary>
-        /// Unfogs and returns true if this has a real tile (type != empty). Delete it elsewhere.
+        /// Unfogs and returns true if this has a real tile (type != empty). Delete it elsewhere. Resets the orientation.
         /// </summary>
         public bool UnFog()
         {
             GetGameObject(TileType.Empty).gameObject.SetActive(false); // hide the fog tile.
-            if (TileType != TileType.Empty && IsFogged == true) GetGameObject(TileType).gameObject.SetActive(true); // set active if currently fogged
+            if (TileType != TileType.Empty && IsFogged == true)
+            {
+                //Orientation = Orientation.Up;
+                GetGameObject(TileType).gameObject.SetActive(true); // set active if currently fogged
+            }
             IsFogged = false;
             return (TileType != TileType.Empty);
         }
@@ -114,13 +126,34 @@ namespace KaimiraGames.GameJam
             TileType.Cat => GetRandomCatGO(),
             TileType.Cheese => GetRandomCheeseGO(),
             TileType.Cross => Cross,
-            TileType.Empty => Empty,
+            TileType.Empty => GetFogTile(),
             TileType.LeftTurn => LeftTurn,
             TileType.RightTurn => RightTurn,
             TileType.Straight => Straight,
             TileType.Tee => Tee,
             _ => Empty,
         };
+
+        private GameObject GetFogTile()
+        {
+            int gridWidth = _gameManager.GridWidth;
+            GridPoint lowerLeft = new GridPoint(0, 0);
+            GridPoint lowerRight = new GridPoint(gridWidth - 1, 0);
+            GridPoint topLeft = new GridPoint(0, gridWidth - 1);
+            GridPoint topRight = new GridPoint(gridWidth - 1, gridWidth - 1);
+
+
+            if (GridPoint == lowerLeft) return FogBottomLeft;
+            if (GridPoint == lowerRight) return FogBottomRight;
+            if (GridPoint == topLeft) return FogTopLeft;
+            if (GridPoint == topRight) return FogTopRight;
+
+            if (GridPoint.X == 0) return FogLeft;
+            if (GridPoint.X == gridWidth - 1) return FogRight;
+            if (GridPoint.Y == 0) return FogBottom;
+            if (GridPoint.Y == gridWidth - 1) return FogTop;
+            return Empty;
+        }
 
 
         private GameObject GetRandomCheeseGO() => NumberUtils.Next(5) switch

@@ -86,14 +86,14 @@ namespace KaimiraGames.GameJam
         private int maxId = 0;
         private GridPoint _cheesePoint;
         private Tile _cheeseTile;
-        private Vector3 cutsceneOffscreen = new Vector3(3000, 450, 0);
-        private Vector3 cutsceneOnscreen = new Vector3(800, 450, 0);
+        private Vector3 cutsceneOffscreen = new Vector3(2000, 0, 0);
+        private Vector3 cutsceneOnscreen = new Vector3(0, 0, 0);
         private Color cutsceneBlack = new Color(0, 0, 0, 0.9f);
 
 
         // Game Settings
         private int StartingRolls = 25;
-        private int GridWidth = 8;
+        public int GridWidth = 8;
         private int CatChance = 25;
 
         // Animation settings
@@ -203,7 +203,8 @@ namespace KaimiraGames.GameJam
             Fader.color = Color.clear;
             CutScene.SetActive(true);
             CutsceneLevelText.text = $"Level: {Level}";
-            CutScene.transform.position = cutsceneOffscreen;
+            //CutScene.transform.position = cutsceneOffscreen;
+            CutScene.transform.localPosition = cutsceneOffscreen;
             CutSceneText.text = GetCutsceneText(which);
             CutsceneLevelText.characterSpacing = _cutsceneSplashCharacterStart;
 
@@ -214,7 +215,8 @@ namespace KaimiraGames.GameJam
             seq.Append(Fader.DOColor(cutsceneBlack, 1f)).SetEase(Ease.Linear);
 
             // slide in cutscene
-            seq.Insert(0.5f, CutScene.transform.DOMove(cutsceneOnscreen, 0.5f)).SetEase(Ease.InQuint);
+            //seq.Insert(0.5f, CutScene.transform.DOMove(cutsceneOnscreen, 0.5f)).SetEase(Ease.InQuint);
+            seq.Insert(0.5f, CutScene.transform.DOLocalMove(cutsceneOnscreen, 0.5f)).SetEase(Ease.InQuint);
 
             yield return seq.Play().WaitForCompletion();
 
@@ -307,7 +309,8 @@ namespace KaimiraGames.GameJam
 
         private int GetCutsceneImage(int level) => level switch
         {
-            1 => 0,
+            0 => 9,
+            1 => 9,
             2 => 1,
             3 => 2,
             4 => 3,
@@ -328,12 +331,13 @@ namespace KaimiraGames.GameJam
 
             v($"Start position:{CutScene.transform.position}");
 
-            seq.Append(CutScene.transform.DOMove(cutsceneOffscreen, duration)).SetEase(Ease.OutQuint);
+            //seq.Append(CutScene.transform.DOMove(cutsceneOffscreen, duration)).SetEase(Ease.OutQuint);
+            seq.Append(CutScene.transform.DOLocalMove(cutsceneOffscreen, duration)).SetEase(Ease.OutQuint);
             seq.Insert(halfDuration, Fader.DOColor(Color.clear, halfDuration)).SetEase(Ease.Linear);
             yield return seq.Play().WaitForCompletion();
             
             Fader.color = cutsceneBlack;
-            CutScene.transform.position = cutsceneOnscreen; // reset
+            CutScene.transform.localPosition = cutsceneOnscreen; // reset
             Fader.gameObject.SetActive(false);
             CutScene.SetActive(false);
         }
@@ -609,6 +613,7 @@ namespace KaimiraGames.GameJam
         public void DropTile(Tile tile, GridPoint gp, int id)
         {
             GridContents[gp] = tile; // can only drop on unfogged - this shouldn't collide
+
             UnfogGridpoint(gp);
 
             Tile removedFromInventoryTile = InventoryTiles.Where(x => x.Id == id).FirstOrDefault();
